@@ -1,9 +1,18 @@
 require('dotenv').config();
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, please try again later' }
+});
+app.use(limiter);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Ghostwear API is running' });
@@ -16,7 +25,6 @@ function requireApiKey(req, res, next) {
   if (key !== API_KEY) return res.status(401).json({ error: 'unauthorized' });
   next();
 }
-
 app.use(requireApiKey);
 
 const pool = new Pool({
@@ -69,7 +77,10 @@ app.delete('/captions/:id', async (req, res) => {
   if (!Number.isInteger(Number(id))) {
     return res.status(400).json({ error: 'id must be a number' });
   }
-  const result = await pool.query('DELETE FROM captions WHERE id = $1 RETURNING *', [id]);
+  const result = await pool.query(
+    'DELETE FROM captions WHERE id = $1 RETURNING *',
+    [id]
+  );
   if (result.rows.length === 0) return res.status(404).json({ error: 'caption not found' });
   res.json({ message: 'deleted', deleted: result.rows[0] });
 });
