@@ -20,6 +20,11 @@ app.get('/', (req, res) => {
   res.json({ message: 'Ghostwear API is running' });
 });
 
+app.get('/public/captions', async (req, res) => {
+  const result = await pool.query("SELECT topic, caption FROM captions WHERE status = 'done' ORDER BY id DESC");
+  res.json(result.rows);
+});
+
 const API_KEY = process.env.API_KEY;
 
 function requireApiKey(req, res, next) {
