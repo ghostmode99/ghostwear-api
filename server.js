@@ -1,11 +1,13 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 
 const app = express();
 app.set('trust proxy', 1);
+app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
 
